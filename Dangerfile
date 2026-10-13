@@ -13,7 +13,7 @@ elsif title.length < 10
 end
 
 # Check 3: PR Labels
-labels = github.pr_labels.map { |label| label.name }
+labels = github.pr_labels
 
 if labels.empty?
   warn("Please add a label to this PR.")
