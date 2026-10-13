@@ -1,24 +1,22 @@
 # Check 1: PR Description
 if github.pr_body.nil? || github.pr_body.strip.empty?
-  warn("Please provide a PR description explaining what changed and why.")
-elsif github.pr_body.length < 20
-  warn("The PR description is quite short. Please provide more context.")
+  warn("Please add a PR description.")
 end
 
 # Check 2: PR Title
 title = github.pr_title
 
 if title.nil? || title.strip.empty?
-  fail("PR title must not be empty.")
+  fail("PR title must not be empty and should have at least 10 characters.")
 elsif title.length < 10
-  warn("PR title is too short. Please use a descriptive title.")
+  warn("PR title should have at least 10 characters.")
 end
 
 # Check 3: PR Labels
 labels = github.pr_labels.map { |label| label.name }
 
 if labels.empty?
-  warn("Please add at least one label to categorise this PR.")
+  warn("Please add a label to this PR.")
 end
 
 # Check 4: PR Size
@@ -45,4 +43,4 @@ unless has_documentation_changes
 end
 
 # Confirmation
-message("Danger checks completed. Please review any warnings or failures above.")
+message("Danger has completed the PR checks!")
