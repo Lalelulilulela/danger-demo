@@ -1,1 +1,26 @@
+name: Danger PR Checks
+on:
+    pull_request:
+        types: [opened, synchronize, reopened, edited, labeled, unlabeled]
+permissions:
+    contents: read
+    pull-requests: write
+    issues: write
 
+jobs:
+  danger:
+      runs-on: ubuntu-latest
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v4
+          with:
+            fetch-depth: 0
+        - name: Setup Ruby
+          uses: ruby/setup-ruby@v1
+          with:
+            ruby-version: '3.3'
+            bundler-cache: true
+        - name: Run Danger
+          env:
+            DANGER_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          run: bundle exec danger
