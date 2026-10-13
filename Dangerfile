@@ -1,52 +1,48 @@
-import Danger
+# Check 1: PR Description
+if github.pr_body.nil? || github.pr_body.strip.empty?
+  warn("Please provide a PR description explaining what changed and why.")
+elsif github.pr_body.length < 20
+  warn("The PR description is quite short. Please provide more context.")
+end
 
-let danger = Danger()
+# Check 2: PR Title
+title = github.pr_title
 
-// Check 1: PR Description
-if let body = danger.github.pullRequest.body, body.isEmpty {
-    warn("Please provide a PR description explaining what changed and why.")
-} else if let body = danger.github.pullRequest.body, body.count < 20 {
-    warn("The PR description is quite short. Please provide more context.")
-}
+if title.nil? || title.strip.empty?
+  fail("PR title must not be empty.")
+elsif title.length < 10
+  warn("PR title is too short. Please use a descriptive title.")
+end
 
-// Check 2: PR Title
-let title = danger.github.pullRequest.title
+# Check 3: PR Labels
+labels = github.pr_labels.map { |label| label.name }
 
-if title.isEmpty {
-    fail("PR title must not be empty.")
-} else if title.count < 10 {
-    warn("PR title is too short. Please use a descriptive title.")
-}
+if labels.empty?
+  warn("Please add at least one label to categorise this PR.")
+end
 
-// Check 3: PR Labels
-let labels = danger.github.pullRequest.labels.map { $0.name }
+# Check 4: PR Size
+changed_files = (
+  git.added_files +
+  git.modified_files +
+  git.deleted_files
+).uniq
 
-if labels.isEmpty {
-    warn("Please add at least one label to categorise this PR.")
-}
+changed_file_count = changed_files.length
 
-// Check 4: PR Size
-let files = danger.git.createdFiles
-    + danger.git.modifiedFiles
-    + danger.git.deletedFiles
+if changed_file_count > 20
+  warn("This PR changes #{changed_file_count} files. Consider splitting it into smaller PRs.")
+end
 
-let changedFileCount = Set(files).count
+# Check 5: Documentation
+has_documentation_changes = changed_files.any? do |file|
+  file.downcase.end_with?(".md") ||
+    file.downcase.start_with?("docs/")
+end
 
-if changedFileCount > 20 {
-    warn("This PR changes \(changedFileCount) files. Consider splitting it into smaller PRs.")
-}
+unless has_documentation_changes
+  message("No documentation changes detected. Please consider whether documentation needs updating.")
+end
 
-// Check 5: Documentation
-let changedFiles = Set(files)
-
-let hasDocumentationChanges = changedFiles.contains {
-    $0.lowercased().hasSuffix(".md")
-    || $0.lowercased().contains("docs/")
-}
-
-if !hasDocumentationChanges {
-    message("No documentation changes detected. Please consider whether documentation needs updating.")
-}
-
-// Confirmation
+# Confirmation
 message("Danger checks completed. Please review any warnings or failures above.")
